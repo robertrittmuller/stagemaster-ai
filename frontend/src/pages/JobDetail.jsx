@@ -134,6 +134,7 @@ const JobDetail = () => {
                                 </div>
                             ) : (
                                 <div className="space-y-8">
+                                    <RenderingProgress job={job} />
                                     <div className="relative w-full min-h-[200px] overflow-hidden rounded-2xl shadow-elevation-4 border border-outline-variant bg-surface-container">
                                         <img
                                             src={job.original_image_url}
@@ -147,7 +148,6 @@ const JobDetail = () => {
                                             </div>
                                         </div>
                                     </div>
-                                    <RenderingProgress job={job} />
                                 </div>
                             )}
                         </div>
