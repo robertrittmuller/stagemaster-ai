@@ -83,7 +83,11 @@ async def process_staging_job(job_id: str):
             
             # Real Image Generation
             logger.info(f"Generating image for job {job_id}")
-            image_data = await generate_image(generation_prompt, db_image.original_url)
+            image_data = await generate_image(
+                generation_prompt,
+                db_image.original_url,
+                fix_white_balance=db_job.fix_white_balance
+            )
             # image_data is now bytes (decoded from base64 or downloaded)
                 
             # Upload to results bucket

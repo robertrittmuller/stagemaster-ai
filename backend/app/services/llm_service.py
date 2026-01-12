@@ -160,7 +160,11 @@ async def generate_staged_image_prompt(
     Generates a highly detailed prompt for the image generation model (e.g., Stable Diffusion or DALL-E)
     to stage the room.
     """
-    wb_instruction = "CORRECT the white balance if the original image is too warm (yellow) or cool (blue), making it look like high-end neutral architectural photography, BUT ensure the original colors of painted surfaces (walls, etc.) are preserved and not altered by the correction." if fix_white_balance else "PRESERVE the original white balance and color temperature of the photo exactly."
+    if fix_white_balance:
+        wb_instruction = "CORRECT the white balance if the original image is too warm (yellow) or cool (blue), making it look like high-end neutral architectural photography, BUT ensure the original colors of painted surfaces (walls, etc.) are preserved and not altered by the correction."
+    else:
+        wb_instruction = "STRICTLY PRESERVE the original white balance, color temperature, and lighting tint of the photo exactly as it is. Do NOT attempt to 'fix' or 'neutralize' the colors. If the original photo is warm/yellow or cool/blue, the final rendered image MUST maintain that exact same warmth or coolness."
+    
     decor_instruction = "Add furniture and wall decor, ensuring that any wall-mounted items do not require drilling (e.g., use leaning art, mirrors on the floor, or lightweight decor)." if wall_decorations else "Add furniture only. Keep walls completely bare of any art or decorations."
 
     prompt = f"""
@@ -200,7 +204,7 @@ async def generate_staged_image_prompt(
         logger.error(f"Error calling LiteLLM for generation prompt: {str(e)}")
         raise
 
-async def generate_image(prompt: str, original_image_url: str = None) -> bytes:
+async def generate_image(prompt: str, original_image_url: str = None, fix_white_balance: bool = True) -> bytes:
     """
     Generates an image using the configured image generation model.
     Returns the raw binary content of the generated image.
@@ -233,6 +237,10 @@ async def generate_image(prompt: str, original_image_url: str = None) -> bytes:
              if width > 0 and height > 0:
                  resolution_instruction = f"\n\nIMPORTANT: Generate the output image with the exact resolution of {width}x{height} pixels."
                  messages_content[0]["text"] += resolution_instruction
+             
+             if not fix_white_balance:
+                 wb_preservation_instruction = "\n\nCRITICAL: You MUST preserve the original white balance and color temperature of the input image. Do NOT auto-correct or neutralize the colors. If the input is warm, the output must be equally warm."
+                 messages_content[0]["text"] += wb_preservation_instruction
         
         payload = {
             "model": model,
